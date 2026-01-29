@@ -61,3 +61,26 @@ def run_pylint(file_path: str) -> str:
         return " Error: Pylint is not installed. Please check requirements.txt."
     except Exception as e:
         return f" Error running Pylint: {str(e)}"
+
+
+
+def run_pytest(test_file_path: str) -> str:
+    '''hadi interface ta3 pytest tool'''
+    if not _is_safe_path(test_file_path):
+        return " SECURITY ERROR: Cannot run tests outside sandbox."
+
+    try:
+        # nruniw pytest 3la l fichier ta3 tests
+        result = subprocess.run(
+            ["pytest", test_file_path],
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            return f" ALL TESTS PASSED:\n{result.stdout}"
+        else:
+            return f" TESTS FAILED:\n{result.stdout}"
+    except FileNotFoundError:
+        return " Error: Pytest is not installed."
+    except Exception as e:
+        return f" Error running Pytest: {str(e)}"
