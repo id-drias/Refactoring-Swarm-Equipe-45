@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 # had fonction bach t9ra w tkteb f les fichiers berk f sandbox (3la jal security)
 
@@ -24,4 +25,22 @@ def read_file(file_path: str) -> str:
             return f.read()
     except Exception as e:
         return f" Error reading file: {str(e)}"
+
+
+
+def write_file(file_path: str, content: str) -> str:
+    '''nvirifiw eda nkedrou nktebw'''
+    if not _is_safe_path(file_path):
+        return f" SECURITY ERROR: Cannot write to {file_path}. Stay in the sandbox."
+    
+    try:
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        return f" Successfully wrote to {file_path}"
+    except Exception as e:
+        return f" Error writing file: {str(e)}"
+    
 
