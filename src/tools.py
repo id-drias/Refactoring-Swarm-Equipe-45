@@ -44,3 +44,20 @@ def write_file(file_path: str, content: str) -> str:
         return f" Error writing file: {str(e)}"
     
 
+def run_pylint(file_path: str) -> str:
+    '''hadi interface ta3 pylint tool'''
+    if not _is_safe_path(file_path):
+        return " SECURITY ERROR: Cannot analyze files outside sandbox."
+
+    try:
+        # nruniw pylint 3la l fichier m3a disable ta3 docstring warnings
+        result = subprocess.run(
+            ["pylint", file_path, "--disable=C0114,C0115,C0116"], 
+            capture_output=True, 
+            text=True
+        )
+        return result.stdout if result.stdout else result.stderr
+    except FileNotFoundError:
+        return " Error: Pylint is not installed. Please check requirements.txt."
+    except Exception as e:
+        return f" Error running Pylint: {str(e)}"
