@@ -5,7 +5,7 @@ import os
 from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
 
-from src.tools import write_file
+from src.tools import write_file, read_file
 from src.utils.logger import log_experiment, ActionType
 from .state import SwarmState
 
@@ -17,10 +17,23 @@ def load_prompt(prompt_file: str) -> str:
         return f.read()
 
 
+def find_test_file(source_file: str) -> str:
+    """Find the corresponding test file for a source file."""
+    dir_name = os.path.dirname(source_file)
+    base_name = os.path.basename(source_file)
+    
+    # Try same directory: test_<filename>.py
+    test_file = os.path.join(dir_name, f"test_{base_name}")
+    if os.path.exists(test_file):
+        return test_file
+    
+    return None
+
+
 def fixer_node(state: SwarmState) -> SwarmState:
     """
     The Fixer agent:
-    1. Reads the audit report and refactoring plan
+    1. Reads the audit report, refactoring plan, AND test file
     2. Applies fixes to the code
     3. Writes the corrected code back to the file
     """
@@ -36,6 +49,28 @@ def fixer_node(state: SwarmState) -> SwarmState:
         model="llama-3.1-8b-instant",
         temperature=0.1  # Very low temperature for precise code generation
     )
+    
+    # Read the test file to understand expected behavior
+    test_file = find_test_file(state["current_file"])
+    test_content = ""
+    if test_file:
+        test_content = read_file(test_file)
+        if test_content.startswith(" Error") or test_content.startswith(" SECURITY"):
+            test_content = ""
+    
+    test_section = ""
+    if test_content:
+        test_section = f"""
+=== TEST FILE (YOUR CODE MUST PASS THESE TESTS) ===
+```python
+{test_content}
+```
+
+CRITICAL: Read the tests carefully! Your code MUST:
+- Raise the EXACT exception types the tests expect (ValueError, not ZeroDivisionError, etc.)
+- Return values when tests check return values (don't just print)
+- Match the exact behavior the tests are checking for
+"""
     
     # Choose prompt based on whether this is a retry
     if is_retry:
@@ -54,7 +89,7 @@ def fixer_node(state: SwarmState) -> SwarmState:
 
 === TEST ERROR LOGS ===
 {state['error_logs']}
-
+{test_section}
 === REFACTORING PLAN ===
 {state['refactoring_plan']}
 
@@ -73,11 +108,11 @@ Provide the corrected code:"""
 ```python
 {state['original_code']}
 ```
-
+{test_section}
 Provide the corrected code:"""
 
     messages = [
-        SystemMessage(content="You are a Python code fixer. Return ONLY the corrected code, no explanations."),
+        SystemMessage(content="You are a Python code fixer. Return ONLY the corrected code, no explanations. CRITICAL: Your code must pass all the provided tests - match exact exception types and return values!"),
         HumanMessage(content=input_prompt)
     ]
     
