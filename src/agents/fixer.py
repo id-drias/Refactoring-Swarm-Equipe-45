@@ -2,7 +2,7 @@
 Fixer Agent - Applies corrections based on the refactoring plan.
 """
 import os
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
 
 from src.tools import write_file
@@ -32,10 +32,9 @@ def fixer_node(state: SwarmState) -> SwarmState:
         print(f"\n🔧 FIXER: Applying fixes to {state['current_file']}...")
     
     # Initialize the LLM
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
-        temperature=0.1,  # Very low temperature for precise code generation
-        convert_system_message_to_human=True
+    llm = ChatGroq(
+        model="llama-3.1-8b-instant",
+        temperature=0.1  # Very low temperature for precise code generation
     )
     
     # Choose prompt based on whether this is a retry
@@ -98,7 +97,7 @@ Provide the corrected code:"""
     # Log the interaction
     log_experiment(
         agent_name="Fixer",
-        model_used="gemini-2.0-flash",
+        model_used="llama-3.1-8b-instant",
         action=ActionType.FIX,
         details={
             "input_prompt": input_prompt,

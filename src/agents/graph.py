@@ -74,7 +74,8 @@ def handle_result(state: SwarmState) -> SwarmState:
             print(f"🔄 ORCHESTRATOR: Retry {state['retry_count']}/{state['max_retries']}")
         else:
             # Max retries reached - mark as failed
-            state["failed_files"].append(state["current_file"])
+            if state["current_file"] not in state["failed_files"]:
+                state["failed_files"].append(state["current_file"])
             print(f"❌ ORCHESTRATOR: {state['current_file']} failed after {state['max_retries']} attempts")
     
     return state
@@ -91,13 +92,19 @@ def should_continue(state: SwarmState) -> Literal["select_file", "retry_fix", "e
         else:
             return "end"
     else:
-        # Tests failed
-        if state["retry_count"] <= state["max_retries"] and state["retry_count"] > 0:
+        # Tests failed - check if we can still retry
+        # retry_count is incremented AFTER handle_result, so we check if it's still under max
+        if state["retry_count"] < state["max_retries"]:
             return "retry_fix"
-        elif state["files"]:
-            return "select_file"
         else:
-            return "end"
+            # Max retries exhausted - add to failed and move on
+            if state["current_file"] and state["current_file"] not in state["failed_files"]:
+                state["failed_files"].append(state["current_file"])
+                print(f"❌ ORCHESTRATOR: {state['current_file']} failed after {state['max_retries']} attempts")
+            if state["files"]:
+                return "select_file"
+            else:
+                return "end"
 
 
 def has_file(state: SwarmState) -> Literal["process", "end"]:
