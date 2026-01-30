@@ -1,11 +1,23 @@
 [
-  {
-    "id": "9e82e9b0-9b43-4a78-af43-d5d5ef848a2f",
-    "timestamp": "2025-12-26T01:26:41.177789",
-    "agent": "System",
-    "model": "unknown",
-    "action": "STARTUP",
-    "details": "Target: ./sandbox",
-    "status": "INFO"
-  }
+    {
+        "id": "9e82e9b0-9b43-4a78-af43-d5d5ef848a2f",
+        "timestamp": "2025-12-26T01:26:41.177789",
+        "agent": "System",
+        "model": "unknown",
+        "action": "STARTUP",
+        "details": "Target: ./sandbox",
+        "status": "INFO"
+    },
+    {
+        "id": "3aac53e3-3e63-4174-9cc4-d44fa0a8feb5",
+        "timestamp": "2026-01-30T14:41:06.507565",
+        "agent": "Test",
+        "model": "gemini-1.5-flash",
+        "action": "FIX",
+        "details": {
+            "input_prompt": "Fix this code...",
+            "output_response": "def fixed(): pass"
+        },
+        "status": "SUCCESS"
+    }
 ]
