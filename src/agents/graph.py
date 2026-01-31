@@ -65,8 +65,10 @@ def handle_result(state: SwarmState) -> SwarmState:
     """
     if state["test_passed"]:
         # Success - add to completed
-        state["completed_files"].append(state["current_file"])
-        print(f"✅ ORCHESTRATOR: {state['current_file']} completed successfully!")
+        if state["current_file"]:
+            state["completed_files"].append(state["current_file"])
+        if state["current_file"]:
+            print(f"✅ ORCHESTRATOR: {state['current_file']} completed successfully!")
     else:
         # Check if we should retry
         if state["retry_count"] < state["max_retries"]:
@@ -74,9 +76,10 @@ def handle_result(state: SwarmState) -> SwarmState:
             print(f"🔄 ORCHESTRATOR: Retry {state['retry_count']}/{state['max_retries']}")
         else:
             # Max retries reached - mark as failed
-            if state["current_file"] not in state["failed_files"]:
+            if state["current_file"] and state["current_file"] not in state["failed_files"]:
                 state["failed_files"].append(state["current_file"])
-            print(f"❌ ORCHESTRATOR: {state['current_file']} failed after {state['max_retries']} attempts")
+            if state["current_file"]:
+                print(f"❌ ORCHESTRATOR: {state['current_file']} failed after {state['max_retries']} attempts")
     
     return state
 
@@ -209,14 +212,20 @@ def run_swarm(target_dir: str, max_retries: int = 3) -> dict:
     # Initialize state
     initial_state = initialize_state(target_dir, max_retries)
     
+    # Calculate recursion limit more accurately
+    # Per file: select_file (1) + auditor (1) + (fixer + judge + handle) × (1 + retries) = 2 + 3(1+retries)
+    # Total: files × (2 + 3×(1+retries)) + generous buffer to avoid hitting the limit
+    steps_per_file = 2 + 3 * (1 + max_retries)
+    calculated_limit = max(100, len(initial_state["files"]) * steps_per_file + 100)
+    
     print(f"\n📂 Target: {target_dir}")
     print(f"📄 Files to process: {len(initial_state['files'])}")
     for f in initial_state['files']:
         print(f"   - {f}")
     print()
     
-    # Run the graph
-    final_state = app.invoke(initial_state)
+    # Run the graph with calculated recursion limit
+    final_state = app.invoke(initial_state, {"recursion_limit": calculated_limit})
     
     # Print summary
     print("\n" + "=" * 60)

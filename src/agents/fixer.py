@@ -117,7 +117,8 @@ Provide the corrected code:"""
     ]
     
     response = llm.invoke(messages)
-    fixed_code = response.content
+    raw_response = response.content
+    fixed_code = raw_response
     
     # Clean up the response (remove markdown code blocks if present)
     fixed_code = fixed_code.strip()
@@ -136,7 +137,7 @@ Provide the corrected code:"""
         action=ActionType.FIX,
         details={
             "input_prompt": input_prompt,
-            "output_response": fixed_code,
+            "output_response": raw_response,
             "file": state["current_file"],
             "is_retry": is_retry,
             "retry_count": state["retry_count"]
