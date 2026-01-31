@@ -31,7 +31,17 @@ def log_experiment(agent_name: str, model_used: str, action: ActionType, details
         ValueError: Si les champs obligatoires sont manquants dans 'details' ou si l'action est invalide.
     """
     
-    # --- 1. VALIDATION DU TYPE D'ACTION ---
+    # --- 1. VALIDATION DES PARAMÈTRES DE BASE ---
+    if not isinstance(details, dict):
+        raise ValueError("❌ Erreur de Logging : 'details' doit être un dictionnaire.")
+    if not agent_name:
+        raise ValueError("❌ Erreur de Logging : 'agent_name' est obligatoire.")
+    if not model_used:
+        raise ValueError("❌ Erreur de Logging : 'model_used' est obligatoire.")
+    if status not in ["SUCCESS", "FAILURE"]:
+        raise ValueError("❌ Erreur de Logging : 'status' doit être 'SUCCESS' ou 'FAILURE'.")
+
+    # --- 2. VALIDATION DU TYPE D'ACTION ---
     # Permet d'accepter soit l'objet Enum, soit la chaîne de caractères correspondante
     valid_actions = [a.value for a in ActionType]
     if isinstance(action, ActionType):
@@ -41,10 +51,10 @@ def log_experiment(agent_name: str, model_used: str, action: ActionType, details
     else:
         raise ValueError(f"❌ Action invalide : '{action}'. Utilisez la classe ActionType (ex: ActionType.FIX).")
 
-    # --- 2. VALIDATION STRICTE DES DONNÉES (Prompts) ---
+    # --- 3. VALIDATION STRICTE DES DONNÉES (Prompts) ---
     # Pour l'analyse scientifique, nous avons absolument besoin du prompt et de la réponse
     # pour les actions impliquant une interaction majeure avec le code.
-    if action_str in [ActionType.ANALYSIS, ActionType.GENERATION, ActionType.DEBUG, ActionType.FIX]:
+    if action_str in [a.value for a in ActionType]:
         required_keys = ["input_prompt", "output_response"]
         missing_keys = [key for key in required_keys if key not in details]
         
@@ -54,8 +64,13 @@ def log_experiment(agent_name: str, model_used: str, action: ActionType, details
                 f"Les champs {missing_keys} sont manquants dans le dictionnaire 'details'. "
                 f"Ils sont OBLIGATOIRES pour valider le TP."
             )
+        if not details.get("input_prompt") or not details.get("output_response"):
+            raise ValueError(
+                f"❌ Erreur de Logging (Agent: {agent_name}) : "
+                "'input_prompt' et 'output_response' ne doivent pas être vides."
+            )
 
-    # --- 3. PRÉPARATION DE L'ENTRÉE ---
+    # --- 4. PRÉPARATION DE L'ENTRÉE ---
     # Création du dossier logs s'il n'existe pas
     os.makedirs("logs", exist_ok=True)
     
@@ -69,7 +84,7 @@ def log_experiment(agent_name: str, model_used: str, action: ActionType, details
         "status": status
     }
 
-    # --- 4. LECTURE & ÉCRITURE ROBUSTE ---
+    # --- 5. LECTURE & ÉCRITURE ROBUSTE ---
     data = []
     if os.path.exists(LOG_FILE):
         try:
