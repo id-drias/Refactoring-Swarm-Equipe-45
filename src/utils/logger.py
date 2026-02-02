@@ -22,7 +22,7 @@ def log_experiment(agent_name: str, model_used: str, action: ActionType, details
 
     Args:
         agent_name (str): Nom de l'agent (ex: "Auditor", "Fixer").
-        model_used (str): Modèle LLM utilisé (ex: "gemini-1.5-flash").
+        model_used (str): Modèle LLM utilisé (ex: "gemini-2.5-flash").
         action (ActionType): Le type d'action effectué (utiliser l'Enum ActionType).
         details (dict): Dictionnaire contenant les détails. DOIT contenir 'input_prompt' et 'output_response'.
         status (str): "SUCCESS" ou "FAILURE".
