@@ -2,7 +2,7 @@
 Auditor Agent - Analyzes code and creates refactoring plan.
 """
 import os
-from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import SystemMessage, HumanMessage
 
 from src.tools import read_file, run_pylint
@@ -27,8 +27,8 @@ def auditor_node(state: SwarmState) -> SwarmState:
     print(f"\n🔍 AUDITOR: Analyzing {state['current_file']}...")
     
     # Initialize the LLM
-    llm = ChatGroq(
-        model="llama-3.1-8b-instant",
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
         temperature=0.2  # Low temperature for consistent analysis
     )
     
@@ -88,7 +88,7 @@ Respond in this EXACT format:
     # Log the interaction
     log_experiment(
         agent_name="Auditor",
-        model_used="llama-3.1-8b-instant",
+        model_used="gemini-2.5-flash",
         action=ActionType.ANALYSIS,
         details={
             "input_prompt": input_prompt,

@@ -4,7 +4,12 @@ LangGraph Orchestration - The Refactoring Swarm Graph
 import os
 import glob
 from typing import Literal
-from langgraph.graph import StateGraph, END
+
+try:
+    from langgraph.graph import StateGraph, END
+except Exception:  # pragma: no cover - fallback when langgraph deps are unavailable
+    StateGraph = None
+    END = None
 
 from .state import SwarmState
 from .auditor import auditor_node
@@ -150,6 +155,9 @@ def build_graph() -> StateGraph:
       └─── (done) ────────────────────┴──► END
     """
     
+    if StateGraph is None:
+        raise RuntimeError("LangGraph is unavailable. Use the fallback runner.")
+
     # Create the graph
     workflow = StateGraph(SwarmState)
     
@@ -190,6 +198,54 @@ def build_graph() -> StateGraph:
     return workflow
 
 
+def run_swarm_without_langgraph(target_dir: str, max_retries: int = 3) -> dict:
+    """
+    Run the Refactoring Swarm without LangGraph.
+    This avoids dependency issues when langgraph cannot be imported.
+    """
+    print("=" * 60)
+    print("🐝 REFACTORING SWARM - MISSION START")
+    print("=" * 60)
+    print("⚠️  LangGraph unavailable. Running in fallback mode.")
+
+    state = initialize_state(target_dir, max_retries)
+
+    print(f"\n📂 Target: {target_dir}")
+    print(f"📄 Files to process: {len(state['files'])}")
+    for f in state["files"]:
+        print(f"   - {f}")
+    print()
+
+    while True:
+        state = select_next_file(state)
+        if not state["current_file"]:
+            break
+
+        while True:
+            state = auditor_node(state)
+            state = fixer_node(state)
+            state = judge_node(state)
+            state = handle_result(state)
+
+            if state["test_passed"]:
+                break
+            if state["retry_count"] >= state["max_retries"]:
+                break
+
+    print("\n" + "=" * 60)
+    print("🐝 REFACTORING SWARM - MISSION COMPLETE")
+    print("=" * 60)
+    print(f"\n✅ Completed: {len(state['completed_files'])} files")
+    for f in state["completed_files"]:
+        print(f"   - {f}")
+
+    print(f"\n❌ Failed: {len(state['failed_files'])} files")
+    for f in state["failed_files"]:
+        print(f"   - {f}")
+
+    return state
+
+
 def run_swarm(target_dir: str, max_retries: int = 3) -> dict:
     """
     Run the Refactoring Swarm on a target directory.
@@ -205,6 +261,9 @@ def run_swarm(target_dir: str, max_retries: int = 3) -> dict:
     print("🐝 REFACTORING SWARM - MISSION START")
     print("=" * 60)
     
+    if StateGraph is None:
+        return run_swarm_without_langgraph(target_dir, max_retries)
+
     # Build and compile the graph
     workflow = build_graph()
     app = workflow.compile()
