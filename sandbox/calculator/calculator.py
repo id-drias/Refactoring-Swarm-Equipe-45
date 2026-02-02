@@ -1,31 +1,25 @@
-def add(a, b):
-    if a is None or b is None:
+def _validate_numeric_inputs(a, b):
+    if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
         raise TypeError("Both inputs must be numbers")
+
+def add(a, b):
+    _validate_numeric_inputs(a, b)
     return a + b
 
 def subtract(a, b):
-    if a is None or b is None:
-        raise TypeError("Both inputs must be numbers")
+    _validate_numeric_inputs(a, b)
     return a - b
 
 def multiply(a, b):
-    if a is None or b is None:
-        raise TypeError("Both inputs must be numbers")
+    _validate_numeric_inputs(a, b)
     return a * b
 
 def divide(a, b):
-    if a is None or b is None:
-        raise TypeError("Both inputs must be numbers")
+    _validate_numeric_inputs(a, b)
     if b == 0:
         raise ValueError("Cannot divide by zero")
     return a / b
 
 def power(base, exp):
-    if base is None or exp is None:
-        raise TypeError("Both inputs must be numbers")
-    if exp < 0:
-        return 1 / power(base, -exp)
-    result = 1
-    for _ in range(exp):
-        result = result * base
-    return result
+    _validate_numeric_inputs(base, exp)
+    return base ** exp
