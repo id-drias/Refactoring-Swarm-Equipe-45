@@ -29,7 +29,7 @@ def auditor_node(state: SwarmState) -> SwarmState:
     # Initialize the LLM
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
-        temperature=0.2  # Low temperature for consistent analysis
+        temperature=0.2
     )
     
     # Step 1: Read the file

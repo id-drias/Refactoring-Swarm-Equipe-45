@@ -47,7 +47,7 @@ def fixer_node(state: SwarmState) -> SwarmState:
     # Initialize the LLM
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
-        temperature=0.1  # Very low temperature for precise code generation
+        temperature=0.1
     )
     
     # Read the test file to understand expected behavior

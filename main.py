@@ -30,8 +30,8 @@ The swarm will:
     parser.add_argument(
         "--max_retries",
         type=int,
-        default=3,
-        help="Maximum retry attempts per file if tests fail (default: 3)"
+        default=10,
+        help="Maximum retry attempts per file if tests fail (default: 10)"
     )
     args = parser.parse_args()
 
